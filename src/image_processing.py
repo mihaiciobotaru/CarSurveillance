@@ -41,7 +41,7 @@ class ImageProcessor:
                 car_points_inside_box.append(point)
                 logger.debug(f"{point} is inside the parking box.")
             else:
-                logger.debug(f"{point} is outside the parking box, skipping it.")
+                logger.debug(f"{point} is outside the parking box, removing it.")
 
         image = ImageUtils.load_image(SELECTED_IMAGE)
         image = ImageUtils.resize_with_aspect_ratio(image, width=1000)

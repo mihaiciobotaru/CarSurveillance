@@ -16,18 +16,20 @@ class CarDetector:
         "motorcycle": 3
     }
     model = None
+    verbose = False
 
     def __init__(self):
         """ ======= Initialize the CarDetector with YOLOv8 medium model ======= """
         self.model = YOLO("yolov8m.pt")
+        if LOGGING_LEVEL in ["DEBUG", "TRACE"]:
+            self.verbose = True
 
     def detect(self, image:np.ndarray) -> list[Rectangle]:
         """ ======= Detect cars in the given image using YOLOv8 model ======= """
         logger.trace("Running car detection on the image.")
 
         try:
-            results = self.model(image, verbose=False, conf=0.10, iou=0.35, classes=list(self.VEHICLE_CLASSES.values()))
-            logger.debug(f"Detection results: {results}")
+            results = self.model(image, verbose=self.verbose, conf=0.10, classes=list(self.VEHICLE_CLASSES.values()))
             logger.debug(f"Detected {len(results[0].boxes)} results.")
             if not results:
                 logger.error("No results found.")
