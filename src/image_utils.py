@@ -1,9 +1,12 @@
 from config import *
-from utils import Point, Box, Rectangle, Line
+from utils import Point, Box, Rectangle, Line, get_logger
 import cv2
 import numpy as np
 
+logger = get_logger("ImageUtils")
+
 class ImageUtils:
+    """ ======= Class to handle simple and more common image processing tasks ======="""
     
     @staticmethod
     def rotate(image: np.ndarray, angle: float) -> np.ndarray:
@@ -16,23 +19,43 @@ class ImageUtils:
         center = (w // 2, h // 2)
         rotation_matrix = cv2.getRotationMatrix2D(center, angle, 1.0)
         rotated_image = cv2.warpAffine(image, rotation_matrix, (w, h))
-        return rotated_image
+        return rotated_image, rotation_matrix
     
     @staticmethod
-    def rotate_point_against_image(point: Point, image: np.ndarray, angle: float) -> Point:
-        """Rotate a point against the center of the image by a given angle."""
-        if len(image.shape) == 3:
-            h, w = image.shape[:2]
-        else:
-            h, w = image.shape
+    def warp_perspective(image: np.ndarray, src_points: list[Point], dst_points: list[Point]=[]) -> np.ndarray:
+        """Apply perspective transformation to an image."""
+        if len(src_points) != 4:
+            raise ValueError("src_points must contain exactly 4 points.")
         
-        center = (w // 2, h // 2)
-        rotation_matrix = cv2.getRotationMatrix2D(center, angle, 1.0)
+        if len(dst_points) == 0:
+            # Default destination points for a top-down view
+            dst_points = [
+                Point(0, 0), Point(1000, 0), 
+                Point(0, 1000), Point(1000, 1000)
+            ]
+        elif len(dst_points) != 4:
+            raise ValueError("dst_points must contain exactly 4 points, be empty or left unset for default values.")
+
+        src_np = np.float32([point.to_tuple() for point in src_points])
+        dst_np = np.float32([point.to_tuple() for point in dst_points])
         
-        point_np = np.array([[[point.x, point.y]]], dtype=np.float32)
-        rotated_point_np = cv2.transform(point_np, rotation_matrix)
-        
-        return Point(int(rotated_point_np[0][0][0]), int(rotated_point_np[0][0][1]))
+        warp_matrix = cv2.getPerspectiveTransform(src_np, dst_np)
+        warped_image = cv2.warpPerspective(image, warp_matrix, (image.shape[1], image.shape[0]))
+        return warped_image, warp_matrix
+    
+    @staticmethod
+    def warp_point_using_matrix(point: Point, warp_matrix: np.ndarray) -> Point:
+        """Warp a point using a given perspective transformation matrix."""
+        point_np = np.float32([[[point.x, point.y]]])
+        warped_point = cv2.perspectiveTransform(point_np, warp_matrix)
+        return Point(warped_point[0][0][0], warped_point[0][0][1])
+
+    @staticmethod
+    def rotate_point_using_matrix(point: Point, rotation_matrix: np.ndarray) -> Point:
+        """Rotate a point using a given rotation matrix."""
+        point_np = np.float32([[[point.x, point.y]]])
+        rotated_point = cv2.transform(point_np, rotation_matrix)
+        return Point(rotated_point[0][0][0], rotated_point[0][0][1])
     
     @staticmethod
     def get_edges(image: np.ndarray) -> np.ndarray:
@@ -143,6 +166,7 @@ class ImageUtils:
 
 
 def main() -> int:
+    """Main function to demonstrate the ImageUtils class functionality."""
     ImageUtils.display(SELECTED_IMAGE, "Example Image")
 
     return 0

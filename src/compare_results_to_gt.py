@@ -1,3 +1,5 @@
+"""Helper script to compare results with ground truth files."""
+
 import os
 
 def compare_results_to_ground_truth(results, ground_truth):

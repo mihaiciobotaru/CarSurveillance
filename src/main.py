@@ -7,7 +7,8 @@ import os
 
 logger = get_logger("Main")
 
-def get_parking_spaces_status_from_images(image_path: str) -> list[bool]:
+def get_parking_spaces_status_from_image(image_path: str) -> list[bool]:
+    """ ======= Get the status of each parking space from a given image ======= """
     image = ImageUtils.load_image(image_path)
     image = ImageUtils.resize_with_aspect_ratio(image, width=1000)
 
@@ -17,12 +18,14 @@ def get_parking_spaces_status_from_images(image_path: str) -> list[bool]:
 
 def query_parking_spaces_from_image(image_path: str, query_path: str, results_path:str) -> None:
     """ 
+    ======= Query parking spaces status from an image and write results to a file =======
+
     Queries the parking spaces status from images and writes results to a file. 
     Query file contains on first row how many queries there are.
     Each query is a number representing the parking space index (starting from 1).
     Results file will contain the number of queries and for each query it's index and status (1 for occupied, 0 for free).
     """
-    parking_spaces = get_parking_spaces_status_from_images(image_path)
+    parking_spaces = get_parking_spaces_status_from_image(image_path)
     
     with open(query_path, 'r') as file:
         queries = file.readlines()
@@ -39,6 +42,8 @@ def query_parking_spaces_from_image(image_path: str, query_path: str, results_pa
             
 def get_task1_results(dataset_folder: str, save_to_folder:str, remove_old_results=False) -> None:
     """
+    ======= Solve Project's Task 1 =======
+
     Processes all images in the dataset folder, queries parking spaces, and saves results to a specified folder.
     """
     if not os.path.exists(save_to_folder):
@@ -58,11 +63,12 @@ def get_task1_results(dataset_folder: str, save_to_folder:str, remove_old_result
             query_parking_spaces_from_image(image_path, query_path, results_path)
 
 def main() -> int:
+    """ ======= Main function to run the tasks of the project ======= """
     # dataset_folder = "train/Task1"
     # save_to_folder = "train/Task1/results"
     # get_task1_results(dataset_folder, save_to_folder, remove_old_results=True)
-        
-    parking_spaces = get_parking_spaces_status_from_images(SELECTED_IMAGE)
+
+    parking_spaces = get_parking_spaces_status_from_image(SELECTED_IMAGE)
     for i in range(len(parking_spaces) -1, -1, -1):
         logger.info(f"Parking space {i + 1}: {'Occupied' if parking_spaces[i] else 'Free'}")
     image = ImageUtils.load_image(SELECTED_IMAGE)

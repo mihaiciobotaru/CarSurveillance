@@ -1,12 +1,13 @@
 from config import *
 import logging
 
+logging.TRACE = 5  # Custom log level for TRACE
+logging.addLevelName(logging.TRACE, "TRACE")
 logging.basicConfig(level=LOGGING_LEVEL, format='[%(levelname)s] %(name)s - %(funcName)s : %(message)s')
 
 class CustomFormatter(logging.Formatter):
     """A custom logging formatter that adds color to log messages based on their level."""
-    GREY = "\x1b[38;20m"
-    BOLD_RED = "\x1b[31;1m"
+    RED = "\x1b[31;1m"
     BLUE = "\x1b[34;20m"
     GREEN = "\x1b[32;20m"
     WHITE = "\x1b[37;20m"
@@ -20,11 +21,12 @@ class CustomFormatter(logging.Formatter):
         super().__init__(fmt=fmt)
 
         self.FORMATS = {
+            logging.TRACE: self.WHITE + self.FORMAT + self.RESET,
             logging.DEBUG: self.WHITE + self.FORMAT + self.RESET,
             logging.INFO: self.BLUE + self.FORMAT + self.RESET,
             logging.WARNING: self.ORANGE + self.FORMAT + self.RESET,
-            logging.ERROR: self.BOLD_RED + self.FORMAT + self.RESET,
-            logging.CRITICAL: self.BOLD_RED + self.FORMAT + self.RESET
+            logging.ERROR: self.RED + self.FORMAT + self.RESET,
+            logging.CRITICAL: self.RED + self.FORMAT + self.RESET
         }
 
     def format(self, record):
@@ -33,9 +35,18 @@ class CustomFormatter(logging.Formatter):
         formatter = logging.Formatter(log_fmt)
         return formatter.format(record)
 
+class CustomLogger(logging.Logger):
+    """ A custom logger that supports the TRACE log level. """
+
+    def trace(self, msg, *args, **kwargs):
+        """ Log a message with level TRACE. """
+        if self.isEnabledFor(logging.TRACE):
+            self._log(logging.TRACE, msg, args, **kwargs)
+
 def get_logger(name='logger'):
     """ Create and return a logger with the specified name and level. """
-    logger = logging.getLogger(name)
+
+    logger = CustomLogger(name)
     logger.setLevel(LOGGING_LEVEL)
     logger.propagate = False  
 
@@ -48,6 +59,7 @@ def get_logger(name='logger'):
     return logger
 
 class Point:
+    """ ======= A class representing a point in 2D space ======= """
     def __init__(self, x: int, y: int):
         self.x = int(x)
         self.y = int(y)
@@ -63,6 +75,7 @@ class Point:
         return Point(t[0], t[1]) if len(t) == 2 else Point(0, 0)
 
 class Box:
+    """ ======= A class representing a quadrilateral defined by four points ======= """
     def __init__(self, top_left: Point, bottom_right: Point, \
         top_right: Point, bottom_left: Point):
         self.top_left = top_left
@@ -104,6 +117,7 @@ class Box:
         return inside
     
 class Rectangle:
+    """ ======= A class representing a rectangle defined by two points: top-left and bottom-right ======= """
     def __init__(self, top_left: Point, bottom_right: Point):
         self.top_left = top_left
         self.bottom_right = bottom_right
@@ -130,6 +144,7 @@ class Rectangle:
             return Rectangle(Point(0, 0), Point(0, 0))
 
 class Line:
+    """ ======= A class representing a line defined by two points: start and end ======= """
     def __init__(self, start: Point, end: Point):
         self.start = start
         self.end = end

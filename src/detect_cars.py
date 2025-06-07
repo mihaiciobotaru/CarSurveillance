@@ -3,10 +3,12 @@ from config import *
 from utils import Rectangle, get_logger
 from image_utils import ImageUtils
 import cv2
+import numpy as np
 
 logger = get_logger("CarDetector")
 
 class CarDetector:
+    """ ======= Class to detect cars in images using YOLOv8 model ======= """
     VEHICLE_CLASSES = {
         "car": 2,
         "truck": 7,
@@ -16,9 +18,13 @@ class CarDetector:
     model = None
 
     def __init__(self):
+        """ ======= Initialize the CarDetector with YOLOv8 medium model ======= """
         self.model = YOLO("yolov8m.pt")
 
-    def detect(self, image) -> list[Rectangle]:
+    def detect(self, image:np.ndarray) -> list[Rectangle]:
+        """ ======= Detect cars in the given image using YOLOv8 model ======= """
+        logger.trace("Running car detection on the image.")
+
         try:
             results = self.model(image, verbose=False, conf=0.10, iou=0.35, classes=list(self.VEHICLE_CLASSES.values()))
             logger.debug(f"Detection results: {results}")
@@ -41,17 +47,18 @@ class CarDetector:
             return []
 
     def draw_car_boxes(self, image, car_rectangles: list[Rectangle]) -> None:
-        """Draw bounding boxes around detected cars on the image."""
+        """======= Draw bounding boxes around detected cars on the image ======= """
         for rectangle in car_rectangles:
             ImageUtils.draw_rectangle_on_image(image, rectangle, text='Car')
 
     def draw_car_centers(self, image, car_rectangles: list[Rectangle]) -> None:
-        """Draw points at the center of detected cars on the image."""
+        """ ======= Draw points at the center of detected cars on the image ======= """
         for rectangle in car_rectangles:
             car_center = rectangle.get_center()
             ImageUtils.draw_point_on_image(image, car_center, text='Car')
 
 def main() -> int:
+    """ ======= Main function to demonstrate car detection model ======= """
     detector = CarDetector()
 
     image = cv2.imread(SELECTED_IMAGE)

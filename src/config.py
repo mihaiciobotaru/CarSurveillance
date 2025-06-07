@@ -1,5 +1,5 @@
 # ============== Configuration File ==============
-LOGGING_LEVEL = "INFO"  # Logging level for the application
+LOGGING_LEVEL = "DEBUG"  # Logging level for the application
 
 # ====== Display Settings ======
 DISPLAY_PARKING_SPACES_INTERMEDIATE = False
