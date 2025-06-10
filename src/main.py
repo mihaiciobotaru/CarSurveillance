@@ -1,6 +1,6 @@
 from config import *
 from detect_cars import CarDetector
-from image_processing import ImageProcessor
+from image_processor import ImageProcessor
 from image_utils import ImageUtils
 from utils import get_logger
 import os
@@ -74,9 +74,9 @@ def main() -> int:
     image = ImageUtils.load_image(SELECTED_IMAGE)
     image = ImageUtils.resize_with_aspect_ratio(image, width=1000)
     car_rectangles = CarDetector().detect(image)
-    # CarDetector().draw_car_boxes(image, car_rectangles)
+    # CarDetector().draw_car_quadrilaterales(image, car_rectangles)
     CarDetector().draw_car_centers(image, car_rectangles)
-    ImageUtils.draw_box_on_image(image, ImageProcessor.PARKING_BOX)
+    ImageUtils.draw_quadrilateral_on_image(image, ImageProcessor.PARKING_BOX)
     ImageUtils.display(image, title="Parking Spaces", display=True, size=1000)
 
 if __name__ == "__main__":

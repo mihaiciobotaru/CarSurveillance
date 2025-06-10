@@ -1,5 +1,5 @@
 from config import *
-from utils import Point, Box, Rectangle, Line, get_logger
+from utils import Point, Quadrilateral, Rectangle, Line, get_logger
 import cv2
 import numpy as np
 
@@ -140,12 +140,12 @@ class ImageUtils:
         return image
     
     @staticmethod  
-    def draw_box_on_image(image: np.ndarray, box: Box) -> np.ndarray:
-        """Draw a box on the image."""
-        ImageUtils.draw_line_on_image(image, Line(box.top_left, box.top_right))
-        ImageUtils.draw_line_on_image(image, Line(box.top_right, box.bottom_right))
-        ImageUtils.draw_line_on_image(image, Line(box.bottom_right, box.bottom_left))
-        ImageUtils.draw_line_on_image(image, Line(box.bottom_left, box.top_left))
+    def draw_quadrilateral_on_image(image: np.ndarray, quadrilateral: Quadrilateral) -> np.ndarray:
+        """Draw a quadrilateral on the image."""
+        ImageUtils.draw_line_on_image(image, Line(quadrilateral.top_left, quadrilateral.top_right))
+        ImageUtils.draw_line_on_image(image, Line(quadrilateral.top_right, quadrilateral.bottom_right))
+        ImageUtils.draw_line_on_image(image, Line(quadrilateral.bottom_right, quadrilateral.bottom_left))
+        ImageUtils.draw_line_on_image(image, Line(quadrilateral.bottom_left, quadrilateral.top_left))
         return image
     
     @staticmethod

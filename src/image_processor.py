@@ -1,6 +1,6 @@
 from config import *
 from image_utils import ImageUtils
-from utils import Point, Box, get_logger
+from utils import Point, Quadrilateral, get_logger
 import cv2
 import numpy as np
 
@@ -15,7 +15,7 @@ class ImageProcessor:
     TOP_LEFT = Point(410, 230)
     BOTTOM_LEFT = Point(915, 600)
 
-    PARKING_BOX = Box(
+    PARKING_BOX = Quadrilateral(
         top_left=TOP_LEFT,
         bottom_right=BOTTOM_RIGHT,
         top_right=TOP_RIGHT,
@@ -32,16 +32,16 @@ class ImageProcessor:
         """Check if parking spaces availability based on car points."""
         logger.trace("Starting parking spaces availability check.")
 
-        # ======= Filtering car points outside the parking box =======
-        logger.trace("Filtering car points outside the parking box.")
-        car_points_inside_box = []
+        # ======= Filtering car points outside the parking quadrilateral =======
+        logger.trace("Filtering car points outside the parking quadrilateral.")
+        car_points_inside_quadrilateral = []
         car_points.sort(key=lambda p: p.y)
         for point in car_points:
             if ImageProcessor.PARKING_BOX.check_point_inside(point):
-                car_points_inside_box.append(point)
-                logger.debug(f"{point} is inside the parking box.")
+                car_points_inside_quadrilateral.append(point)
+                logger.debug(f"{point} is inside the parking quadrilateral.")
             else:
-                logger.debug(f"{point} is outside the parking box, removing it.")
+                logger.debug(f"{point} is outside the parking quadrilateral, removing it.")
 
         image = ImageUtils.load_image(SELECTED_IMAGE)
         image = ImageUtils.resize_with_aspect_ratio(image, width=1000)
@@ -59,7 +59,7 @@ class ImageProcessor:
         # ======= Apply warp matrix to car points =======
         logger.trace("Translating car points to the warped image coordinates.")
         translated_car_points = []
-        for point in car_points_inside_box:
+        for point in car_points_inside_quadrilateral:
             warped_point = ImageUtils.warp_point_using_matrix(point, warp_matrix)
             translated_point = ImageUtils.rotate_point_using_matrix(warped_point, rotation_matrix)
             translated_car_points.append(translated_point)
@@ -99,7 +99,7 @@ def main() -> int:
 
     image = ImageUtils.load_image(SELECTED_IMAGE)
     image = ImageUtils.resize_with_aspect_ratio(image, width=1000)
-    ImageUtils.draw_box_on_image(image, ImageProcessor.PARKING_BOX)
+    ImageUtils.draw_quadrilateral_on_image(image, ImageProcessor.PARKING_BOX)
     ImageUtils.display(image, title="Parking Spaces")
 
     return 0

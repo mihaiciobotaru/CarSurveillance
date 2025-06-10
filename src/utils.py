@@ -74,7 +74,7 @@ class Point:
     def from_tuple(t: tuple) -> 'Point':
         return Point(t[0], t[1]) if len(t) == 2 else Point(0, 0)
 
-class Box:
+class Quadrilateral:
     """ ======= A class representing a quadrilateral defined by four points ======= """
     def __init__(self, top_left: Point, bottom_right: Point, \
         top_right: Point, bottom_left: Point):
@@ -92,7 +92,7 @@ class Box:
         
     def check_point_inside(self, point: Point) -> bool:
         """
-        Check if a point is inside the quadrilateral defined by the Box's four points.
+        Check if a point is inside the quadrilateral.
         This implementation uses the winding number algorithm (or ray casting).
         It's robust for convex and concave polygons.
         """
