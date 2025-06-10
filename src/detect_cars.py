@@ -30,26 +30,26 @@ class CarDetector:
 
         try:
             results = self.model(image, verbose=self.verbose, conf=0.10, classes=list(self.VEHICLE_CLASSES.values()))
-            logger.debug(f"Detected {len(results[0].quadrilaterales)} results.")
+            logger.debug(f"Detected {len(results[0].boxes)} results.")
             if not results:
                 logger.error("No results found.")
                 return []
 
             car_rectangles = []
             for result in results:
-                for quadrilateral in result.quadrilaterales:
-                    quadrilateral_tuple = quadrilateral.xyxy.cpu().numpy()[0]
+                for box in result.boxes:
+                    box_tuple = box.xyxy.cpu().numpy()[0]
                     for i in range(4):
-                        quadrilateral_tuple[i] = float(quadrilateral_tuple[i])
-                    rectangle = Rectangle.from_tuple(quadrilateral_tuple)
+                        box_tuple[i] = float(box_tuple[i])
+                    rectangle = Rectangle.from_tuple(box_tuple)
                     car_rectangles.append(rectangle)
             return car_rectangles
         except Exception as e:
             logger.error(f"Error during detection: {e}")
             return []
 
-    def draw_car_quadrilaterales(self, image, car_rectangles: list[Rectangle]) -> None:
-        """======= Draw bounding quadrilaterales around detected cars on the image ======= """
+    def draw_car_rectangles(self, image, car_rectangles: list[Rectangle]) -> None:
+        """======= Draw bounding rectangles around detected cars on the image ======= """
         for rectangle in car_rectangles:
             ImageUtils.draw_rectangle_on_image(image, rectangle, text='Car')
 
@@ -72,7 +72,7 @@ def main() -> int:
     if not car_rectangles:
         logger.info("No cars detected.")
     else:
-        detector.draw_quadrilaterales(image, car_rectangles)
+        detector.draw_car_rectangles(image, car_rectangles)
         cv2.imshow("Detected Cars", image)
         cv2.waitKey(0)
         cv2.destroyAllWindows()
