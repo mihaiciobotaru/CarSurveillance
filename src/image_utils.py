@@ -30,8 +30,8 @@ class ImageUtils:
         if len(dst_points) == 0:
             # Default destination points for a top-down view
             dst_points = [
-                Point(0, 0), Point(1000, 0), 
-                Point(0, 1000), Point(1000, 1000)
+                Point(1000, 0), Point(1000, 1000), 
+                Point(0, 0), Point(0, 1000)
             ]
         elif len(dst_points) != 4:
             raise ValueError("dst_points must contain exactly 4 points, be empty or left unset for default values.")

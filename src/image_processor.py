@@ -53,34 +53,32 @@ class ImageProcessor:
             ImageProcessor.TOP_LEFT, ImageProcessor.BOTTOM_LEFT
         ]
         warped_image, warp_matrix = ImageUtils.warp_perspective(image, src_points)
-        rotated_warped_image, rotation_matrix = ImageUtils.rotate(warped_image, angle=-90)
-        ImageUtils.display(rotated_warped_image, title="Rotated Warped Image", display=display_intermediate)
+        ImageUtils.display(warped_image, title="Warped Image", display=display_intermediate)
         
         # ======= Apply warp matrix to car points =======
-        logger.trace("Translating car points to the warped image coordinates.")
-        translated_car_points = []
+        logger.trace("Warping car points to the warped image coordinates.")
+        warped_car_points = []
         for point in car_points_inside_quadrilateral:
             warped_point = ImageUtils.warp_point_using_matrix(point, warp_matrix)
-            translated_point = ImageUtils.rotate_point_using_matrix(warped_point, rotation_matrix)
-            translated_car_points.append(translated_point)
+            warped_car_points.append(warped_point)
             
         # ======= Draw and display the car points in the warped image of parking spaces =======
         if display_intermediate:
-            logger.trace("Drawing translated car points on the rotated warped image.")
-            edges_rotated_warped_image = ImageUtils.get_edges(rotated_warped_image)
-            edges_rotated_warped_image = cv2.cvtColor(edges_rotated_warped_image, cv2.COLOR_GRAY2BGR)
-            for point in translated_car_points:
-                ImageUtils.draw_point_on_image(edges_rotated_warped_image, point)
-            ImageUtils.display(edges_rotated_warped_image, title="Edges of Rotated Warped Image", display=display_intermediate)
+            logger.trace("Drawing warped car points on the warped image.")
+            edges_warped_image = ImageUtils.get_edges(warped_image)
+            edges_warped_image = cv2.cvtColor(edges_warped_image, cv2.COLOR_GRAY2BGR)
+            for point in warped_car_points:
+                ImageUtils.draw_point_on_image(edges_warped_image, point)
+            ImageUtils.display(edges_warped_image, title="Edges of Warped Image", display=display_intermediate)
 
-        # ======= Check if the translated car points are within the parking spaces defined by PARKING_LINES =======
-        logger.trace("Checking parking spaces based on translated car points.")
+        # ======= Check if the warped car points are within the parking spaces defined by PARKING_LINES =======
+        logger.trace("Checking parking spaces based on warped car points.")
         parking_spaces = []
         for i, line_y in enumerate(ImageProcessor.PARKING_LINES):
             next_line_y = ImageProcessor.PARKING_LINES[i + 1] if i + 1 < len(ImageProcessor.PARKING_LINES) else 1000
 
             occupied = False
-            for point in translated_car_points:
+            for point in warped_car_points:
                 if line_y <= point.y <= next_line_y:
                     occupied = True
                     break
