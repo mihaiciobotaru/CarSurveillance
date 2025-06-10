@@ -1,7 +1,9 @@
 # ============== Configuration File ==============
-LOGGING_LEVEL = "DEBUG"  # Logging level for the application
+# LOGGING_LEVEL = "DEBUG"  # Logging level for the application
+LOGGING_LEVEL = "ERROR"  # Logging level for the application
 
 # ====== Display Settings ======
+# DISPLAY_PARKING_SPACES_INTERMEDIATE = True
 DISPLAY_PARKING_SPACES_INTERMEDIATE = False
 # ^^^ Display intermediate steps when processing parking spaces availability check_parking_spaces()
 

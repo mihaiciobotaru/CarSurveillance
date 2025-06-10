@@ -20,7 +20,7 @@ class CarDetector:
 
     def __init__(self):
         """ ======= Initialize the CarDetector with YOLOv8 medium model ======= """
-        self.model = YOLO("yolov8m.pt")
+        self.model = YOLO("yolov8n.pt")
         if LOGGING_LEVEL in ["DEBUG", "TRACE"]:
             self.verbose = True
 

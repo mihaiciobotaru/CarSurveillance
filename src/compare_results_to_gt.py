@@ -17,9 +17,10 @@ def main() -> int:
     """
     Main function to run the script.
     """
-    GROUND_TRUTH_FOLDER = "train/Task1/ground-truth"
-    PREDICTED_FOLDER = "train/Task1/results"
-    
+    TASK_ID = 2
+    GROUND_TRUTH_FOLDER = f"train/Task{TASK_ID}/ground-truth"
+    PREDICTED_FOLDER = f"train/Task{TASK_ID}/results"
+
     ground_truth_files = [f for f in os.listdir(GROUND_TRUTH_FOLDER) if f.endswith("_gt.txt")]
     predicted_files = [f for f in os.listdir(PREDICTED_FOLDER) if f.endswith("_results.txt")]
     
