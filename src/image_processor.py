@@ -10,16 +10,19 @@ class ImageProcessor:
     """ ======= Class to handle complex image processing tasks ======="""
 
     # The coordinates for the parking spaces quadrilateral in the image
-    TOP_RIGHT = Point(455, 210)
-    BOTTOM_RIGHT = Point(915, 500)
-    TOP_LEFT = Point(410, 230)
-    BOTTOM_LEFT = Point(915, 600)
 
     PARKING_BOX = Quadrilateral(
-        top_left=TOP_LEFT,
-        bottom_right=BOTTOM_RIGHT,
-        top_right=TOP_RIGHT,
-        bottom_left=BOTTOM_LEFT
+        top_left=Point(410, 230),
+        bottom_right=Point(915, 500),
+        top_right=Point(455, 210),
+        bottom_left=Point(915, 600)
+    )
+    
+    TRAFFIC_LIGHT_QUEUE = Quadrilateral(
+        top_left=Point(410, 230),
+        bottom_right=Point(915, 500),
+        top_right=Point(455, 210),
+        bottom_left=Point(915, 600)
     )
 
     # The y-coordinates of the parking lines in the image
@@ -28,29 +31,28 @@ class ImageProcessor:
     PARKING_LINES = [10, 100, 192, 290, 385, 480, 580, 680, 785, 890] 
 
     @staticmethod
-    def check_parking_spaces(image: np.ndarray, car_points: list[Point], display_intermediate=False) -> list[bool]:
-        """Check if parking spaces availability based on car points."""
-        logger.trace("Starting parking spaces availability check.")
-
-        # ======= Filtering car points outside the parking quadrilateral =======
-        logger.trace("Filtering car points outside the parking quadrilateral.")
+    def get_image_with_cars_from_quadrilateral(image: np.ndarray, quadrilateral: Quadrilateral, 
+                                               car_points: list[Point], display_intermediate:bool=False) -> np.ndarray:
+        """Get an image cropped to the specified quadrilateral together with the car points."""
+        # ======= Filtering car points outside the target quadrilateral =======
+        logger.trace("Filtering car points outside the target quadrilateral.")
         car_points_inside_quadrilateral = []
         car_points.sort(key=lambda p: p.y)
         for point in car_points:
-            if ImageProcessor.PARKING_BOX.check_point_inside(point):
+            if quadrilateral.check_point_inside(point):
                 car_points_inside_quadrilateral.append(point)
-                logger.debug(f"{point} is inside the parking quadrilateral.")
+                logger.debug(f"{point} is inside the target quadrilateral.")
             else:
-                logger.debug(f"{point} is outside the parking quadrilateral, removing it.")
+                logger.debug(f"{point} is outside the target quadrilateral, removing it.")
 
         image = ImageUtils.load_image(SELECTED_IMAGE)
         image = ImageUtils.resize_with_aspect_ratio(image, width=1000)
 
-        # ======= Warp and crop the image to get a top-down view of the parking spaces =======
+        # ======= Warp and crop the image to the target quadrilateral =======
         logger.trace("Applying perspective transformation to the image.")
         src_points = [   
-            ImageProcessor.BOTTOM_LEFT, ImageProcessor.BOTTOM_RIGHT,
-            ImageProcessor.TOP_RIGHT, ImageProcessor.TOP_LEFT
+            quadrilateral.bottom_left, quadrilateral.bottom_right,
+            quadrilateral.top_right, quadrilateral.top_left
         ]
         warped_image, warp_matrix = ImageUtils.warp_perspective(image, src_points)
         ImageUtils.display(warped_image, title="Warped Image", display=display_intermediate)
@@ -62,7 +64,7 @@ class ImageProcessor:
             warped_point = ImageUtils.warp_point_using_matrix(point, warp_matrix)
             warped_car_points.append(warped_point)
             
-        # ======= Draw and display the car points in the warped image of parking spaces =======
+        # ======= Draw and display the car points in the warped image of the quadrilateral =======
         if display_intermediate:
             logger.trace("Drawing warped car points on the warped image.")
             edges_warped_image = ImageUtils.get_edges(warped_image)
@@ -70,6 +72,17 @@ class ImageProcessor:
             for point in warped_car_points:
                 ImageUtils.draw_point_on_image(edges_warped_image, point)
             ImageUtils.display(edges_warped_image, title="Edges of Warped Image", display=display_intermediate)
+        
+        return warped_image, warped_car_points
+    
+    @staticmethod
+    def check_parking_spaces(image: np.ndarray, car_points: list[Point], display_intermediate=False) -> list[bool]:
+        """Check if parking spaces availability based on car points."""
+        logger.trace("Starting parking spaces availability check.")
+
+        _, warped_car_points = ImageProcessor.get_image_with_cars_from_quadrilateral(
+            image, ImageProcessor.PARKING_BOX, car_points, display_intermediate
+        )
 
         # ======= Check if the warped car points are within the parking spaces defined by PARKING_LINES =======
         logger.trace("Checking parking spaces based on warped car points.")

@@ -123,15 +123,15 @@ def main() -> int:
     # save_to_folder = "train/Task1/results"
     # get_task1_results(dataset_folder, save_to_folder, remove_old_results=True)
     
-    dataset_folder = "train/Task2"
-    save_to_folder = "train/Task2/results"
-    get_task2_results(dataset_folder, save_to_folder, remove_old_results=True)
+    # dataset_folder = "train/Task2"
+    # save_to_folder = "train/Task2/results"
+    # get_task2_results(dataset_folder, save_to_folder, remove_old_results=True)
 
     # task2("train/Task2/01.mp4")
 
-    # parking_spaces = get_parking_spaces_status_from_image(SELECTED_IMAGE, True)
-    # for i in range(len(parking_spaces) -1, -1, -1):
-    #     logger.info(f"Parking space {i + 1}: {'Occupied' if parking_spaces[i] else 'Free'}")
+    parking_spaces = get_parking_spaces_status_from_image(SELECTED_IMAGE, True)
+    for i in range(len(parking_spaces) -1, -1, -1):
+        logger.info(f"Parking space {i + 1}: {'Occupied' if parking_spaces[i] else 'Free'}")
 
 
 if __name__ == "__main__":
