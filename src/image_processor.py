@@ -3,6 +3,7 @@ from image_utils import ImageUtils
 from utils import Point, Quadrilateral, get_logger
 import cv2
 import numpy as np
+from detect_cars import CarDetector
 
 logger = get_logger("ImageProcessor")
 
@@ -19,10 +20,10 @@ class ImageProcessor:
     )
     
     TRAFFIC_LIGHT_QUEUE = Quadrilateral(
-        top_left=Point(410, 230),
-        bottom_right=Point(915, 500),
-        top_right=Point(455, 210),
-        bottom_left=Point(915, 600)
+        top_left=Point(210, 110),
+        bottom_right=Point(425, 250),
+        top_right=Point(260, 105),
+        bottom_left=Point(360, 250)
     )
 
     # The y-coordinates of the parking lines in the image
@@ -99,12 +100,48 @@ class ImageProcessor:
         
         parking_spaces.reverse()
         return parking_spaces
+    
+    @staticmethod
+    def count_cars_traffic_light_queue(image: np.ndarray, car_points: list[Point], display_intermediate=False) -> int:
+        """Count the number of cars in the traffic light queue."""
+        logger.trace("Counting cars in the traffic light queue.")
+        
+        warped_image, warped_car_points = ImageProcessor.get_image_with_cars_from_quadrilateral(
+            image, ImageProcessor.TRAFFIC_LIGHT_QUEUE, car_points, display_intermediate
+        )
+        print(warped_image.shape)
+        print(warped_car_points)
+        
+        # sort cars by y-coordinate
+        warped_car_points.sort(key=lambda p: p.y)
+        cars_at_traffic_light = []
+        for point in warped_car_points:
+            last_car = cars_at_traffic_light[-1] if cars_at_traffic_light else Point(0, 0)
+            if point.y < 120 or (point.y - last_car.y) < 150:
+                cars_at_traffic_light.append(point)
+            else:
+                break
+
+        return len(cars_at_traffic_light)
+    
 
 def main() -> int:
     """ ======= Debug case for parking spaces status detection ======= """
     logger = get_logger("Main")
     cars = [Point(540, 290), Point(694, 405)]
-    parking_spaces = ImageProcessor.check_parking_spaces(SELECTED_IMAGE, cars, display_intermediate=DISPLAY_PARKING_SPACES_INTERMEDIATE)
+    image = ImageUtils.load_image(SELECTED_IMAGE)
+    image = ImageUtils.resize_with_aspect_ratio(image, width=1000)
+    cars = CarDetector("MEDIUM").detect(image)
+    cars = [car.get_center() for car in cars]
+    ImageUtils.draw_quadrilateral_on_image(image, ImageProcessor.TRAFFIC_LIGHT_QUEUE)
+    for car in cars:
+        ImageUtils.draw_point_on_image(image, car, text="Car")
+    ImageUtils.display(image, title="Selected Image", display=True, size=1000)
+    print("Counting cars in the traffic light queue...")
+
+    count = ImageProcessor.count_cars_traffic_light_queue(image, cars, display_intermediate=DISPLAY_PARKING_SPACES_INTERMEDIATE)
+    logger.info(f"Number of cars in the traffic light queue: {count}")
+    # parking_spaces = ImageProcessor.check_parking_spaces(SELECTED_IMAGE, cars, display_intermediate=DISPLAY_PARKING_SPACES_INTERMEDIATE)
     # for i, space in enumerate(parking_spaces):
     #     logger.info(f"Parking space {i + 1}: {'Occupied' if space else 'Free'}")
 

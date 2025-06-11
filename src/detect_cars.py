@@ -18,9 +18,23 @@ class CarDetector:
     model = None
     verbose = False
 
-    def __init__(self):
+    def __init__(self, model="NANO"):
         """ ======= Initialize the CarDetector with YOLOv8 medium model ======= """
-        self.model = YOLO("yolov8n.pt")
+        if model == "NANO":
+            model_name = "yolov8n.pt"
+        elif model == "MEDIUM":
+            model_name = "yolov8m.pt"
+        elif model == "LARGE":
+            model_name = "yolov8l.pt"
+        elif model == "X-LARGE":
+            model_name = "yolov8x.pt"
+        else:
+            logger.warning(f"Invalid model type: {model}. Defaulting to NANO model.")
+            model_name = "yolov8n.pt"
+            
+        logger.debug(f"Loading YOLOv8 model: {model_name}")
+
+        self.model = YOLO(model_name)
         if LOGGING_LEVEL in ["DEBUG", "TRACE"]:
             self.verbose = True
 
