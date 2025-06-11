@@ -12,13 +12,23 @@ class ImageUtils:
     def rotate(image: np.ndarray, angle: float) -> np.ndarray:
         """Rotate an image by a given angle."""
         if len(image.shape) == 3:
-            h, w = image.shape[:2]
+            height, width = image.shape[:2]
         else:
-            h, w = image.shape
-        
-        center = (w // 2, h // 2)
+            height, width = image.shape
+
+        center = (width // 2, height // 2)
         rotation_matrix = cv2.getRotationMatrix2D(center, angle, 1.0)
-        rotated_image = cv2.warpAffine(image, rotation_matrix, (w, h))
+        
+        cos = np.abs(rotation_matrix[0, 0])
+        sin = np.abs(rotation_matrix[0, 1])
+
+        new_width = int((height * sin) + (width * cos))
+        new_height = int((height * cos) + (width * sin))
+
+        rotation_matrix[0, 2] += (new_width / 2) - center[0]
+        rotation_matrix[1, 2] += (new_height / 2) - center[1]
+
+        rotated_image = cv2.warpAffine(image, rotation_matrix, (new_width, new_height))
         return rotated_image, rotation_matrix
     
     @staticmethod
@@ -30,17 +40,17 @@ class ImageUtils:
         if len(dst_points) == 0:
             # Default destination points for a top-down view
             dst_points = [
-                Point(1000, 0), Point(1000, 1000), 
-                Point(0, 0), Point(0, 1000)
+                Point(1000, 1000), Point(0, 1000), 
+                Point(0, 0), Point(1000, 0)
             ]
         elif len(dst_points) != 4:
             raise ValueError("dst_points must contain exactly 4 points, be empty or left unset for default values.")
-
+        
         src_np = np.float32([point.to_tuple() for point in src_points])
         dst_np = np.float32([point.to_tuple() for point in dst_points])
-        
+
         warp_matrix = cv2.getPerspectiveTransform(src_np, dst_np)
-        warped_image = cv2.warpPerspective(image, warp_matrix, (image.shape[1], image.shape[0]))
+        warped_image = cv2.warpPerspective(image, warp_matrix, (1000, 1000))
         return warped_image, warp_matrix
     
     @staticmethod
@@ -101,7 +111,7 @@ class ImageUtils:
         return cv2.resize(image, dim, interpolation=cv2.INTER_AREA)
     
     @staticmethod
-    def display(image: np.ndarray|str, title: str = "Image", display=True, size: tuple[int, int]|int = 1000) -> None:
+    def display(image: np.ndarray|str, title: str = "Image", display=True, size: tuple[int, int]|int = 900) -> None:
         """Display an image in a window."""
         
         if display is False:
@@ -116,7 +126,11 @@ class ImageUtils:
 
         try:
             if isinstance(size, int):
-                image = ImageUtils.resize_with_aspect_ratio(image, width=size)
+                height, width = image.shape[:2]
+                if width > height:
+                    image = ImageUtils.resize_with_aspect_ratio(image, width=size)
+                else:
+                    image = ImageUtils.resize_with_aspect_ratio(image, height=size)
             elif isinstance(size, tuple) and len(size) == 2:
                 image = cv2.resize(image, size, interpolation=cv2.INTER_AREA)
             

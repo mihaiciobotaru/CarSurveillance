@@ -48,13 +48,13 @@ class ImageProcessor:
 
         # ======= Warp and crop the image to get a top-down view of the parking spaces =======
         logger.trace("Applying perspective transformation to the image.")
-        src_points = [
-            ImageProcessor.TOP_RIGHT, ImageProcessor.BOTTOM_RIGHT,
-            ImageProcessor.TOP_LEFT, ImageProcessor.BOTTOM_LEFT
+        src_points = [   
+            ImageProcessor.BOTTOM_LEFT, ImageProcessor.BOTTOM_RIGHT,
+            ImageProcessor.TOP_RIGHT, ImageProcessor.TOP_LEFT
         ]
         warped_image, warp_matrix = ImageUtils.warp_perspective(image, src_points)
         ImageUtils.display(warped_image, title="Warped Image", display=display_intermediate)
-        
+
         # ======= Apply warp matrix to car points =======
         logger.trace("Warping car points to the warped image coordinates.")
         warped_car_points = []
@@ -92,13 +92,13 @@ def main() -> int:
     logger = get_logger("Main")
     cars = [Point(540, 290), Point(694, 405)]
     parking_spaces = ImageProcessor.check_parking_spaces(SELECTED_IMAGE, cars, display_intermediate=DISPLAY_PARKING_SPACES_INTERMEDIATE)
-    for i, space in enumerate(parking_spaces):
-        logger.info(f"Parking space {i + 1}: {'Occupied' if space else 'Free'}")
+    # for i, space in enumerate(parking_spaces):
+    #     logger.info(f"Parking space {i + 1}: {'Occupied' if space else 'Free'}")
 
-    image = ImageUtils.load_image(SELECTED_IMAGE)
-    image = ImageUtils.resize_with_aspect_ratio(image, width=1000)
-    ImageUtils.draw_quadrilateral_on_image(image, ImageProcessor.PARKING_BOX)
-    ImageUtils.display(image, title="Parking Spaces")
+    # image = ImageUtils.load_image(SELECTED_IMAGE)
+    # image = ImageUtils.resize_with_aspect_ratio(image, width=1000)
+    # ImageUtils.draw_quadrilateral_on_image(image, ImageProcessor.PARKING_BOX)
+    # ImageUtils.display(image, title="Parking Spaces")
 
     return 0
 
