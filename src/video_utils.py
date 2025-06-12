@@ -42,3 +42,25 @@ class VideoUtils:
         logger.debug("All frames read from video successfully")
         logger.trace("Video capture released")
         return
+    
+    @staticmethod
+    def get_last_frame(video_path: str) -> np.ndarray:
+        """Get the last frame of a video."""
+        logger.trace(f"Getting last frame from video {video_path}")
+        cap = VideoUtils.load_video(video_path)
+        n_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
+        
+        if n_frames == 0:
+            logger.error("Video has no frames.")
+            raise ValueError("Video has no frames.")
+        
+        cap.set(cv2.CAP_PROP_POS_FRAMES, n_frames - 1)
+        ret, last_frame = cap.read()
+        cap.release()
+        
+        if not ret:
+            logger.error("Could not read the last frame of the video.")
+            raise ValueError("Could not read the last frame of the video.")
+        
+        logger.debug("Last frame read successfully")
+        return last_frame

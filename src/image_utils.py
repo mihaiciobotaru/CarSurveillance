@@ -78,7 +78,17 @@ class ImageUtils:
     @staticmethod
     def load_image(image_path: str) -> np.ndarray:
         """Load an image from the specified path."""
-        image = cv2.imread(image_path)
+        if isinstance(image_path, np.ndarray):
+            logger.warning(f"Expected image path, but received an image array. Returning the image as is.")
+            return image_path
+
+        if not isinstance(image_path, str):
+            raise ValueError(f"Expected image path as a string, but received {type(image_path)}.")
+
+        try:
+            image = cv2.imread(image_path)
+        except Exception as e:
+            raise ValueError(f"Error reading image from {image_path}: {e}")
         if image is None:
             raise ValueError(f"Could not read image from {image_path}")
         return image
