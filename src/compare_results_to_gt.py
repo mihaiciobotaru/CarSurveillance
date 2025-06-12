@@ -17,7 +17,7 @@ def main() -> int:
     """
     Main function to run the script.
     """
-    TASK_ID = 2
+    TASK_ID = 4
     GROUND_TRUTH_FOLDER = f"train/Task{TASK_ID}/ground-truth"
     PREDICTED_FOLDER = f"train/Task{TASK_ID}/results"
 

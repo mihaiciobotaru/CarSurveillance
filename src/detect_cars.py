@@ -77,9 +77,9 @@ def main() -> int:
     """ ======= Main function to demonstrate car detection model ======= """
     detector = CarDetector()
 
-    image = cv2.imread(SELECTED_IMAGE)
+    image = cv2.imread(SELECTED_FILE)
     if image is None:
-        logger.error(f"Error: Could not read image from {SELECTED_IMAGE}")
+        logger.error(f"Error: Could not read image from {SELECTED_FILE}")
         return 1
     
     car_rectangles = detector.detect(image)

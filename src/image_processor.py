@@ -46,7 +46,6 @@ class ImageProcessor:
             else:
                 logger.debug(f"{point} is outside the target quadrilateral, removing it.")
 
-        image = ImageUtils.load_image(SELECTED_IMAGE)
         image = ImageUtils.resize_with_aspect_ratio(image, width=1000)
 
         # ======= Warp and crop the image to the target quadrilateral =======
@@ -77,9 +76,11 @@ class ImageProcessor:
         return warped_image, warped_car_points
     
     @staticmethod
-    def check_parking_spaces(image: np.ndarray, car_points: list[Point], display_intermediate=False) -> list[bool]:
+    def check_parking_spaces(image: np.ndarray|str, car_points: list[Point], display_intermediate=False) -> list[bool]:
         """Check if parking spaces availability based on car points."""
         logger.trace("Starting parking spaces availability check.")
+        if isinstance(image, str):
+            image = ImageUtils.load_image(image)
 
         _, warped_car_points = ImageProcessor.get_image_with_cars_from_quadrilateral(
             image, ImageProcessor.PARKING_BOX, car_points, display_intermediate
@@ -102,16 +103,18 @@ class ImageProcessor:
         return parking_spaces
     
     @staticmethod
-    def count_cars_traffic_light_queue(image: np.ndarray, car_points: list[Point], display_intermediate=False) -> int:
+    def count_cars_traffic_light_queue(image: np.ndarray|str, car_points: list[Point], display_intermediate=False) -> int:
         """Count the number of cars in the traffic light queue."""
         logger.trace("Counting cars in the traffic light queue.")
-        
+        if isinstance(image, str):
+            image = ImageUtils.load_image(image)
+
         warped_image, warped_car_points = ImageProcessor.get_image_with_cars_from_quadrilateral(
             image, ImageProcessor.TRAFFIC_LIGHT_QUEUE, car_points, display_intermediate
         )
-        print(warped_image.shape)
-        print(warped_car_points)
-        
+        logger.debug(warped_image.shape)
+        logger.debug(warped_car_points)
+
         # sort cars by y-coordinate
         warped_car_points.sort(key=lambda p: p.y)
         cars_at_traffic_light = []
@@ -129,7 +132,7 @@ def main() -> int:
     """ ======= Debug case for parking spaces status detection ======= """
     logger = get_logger("Main")
     cars = [Point(540, 290), Point(694, 405)]
-    image = ImageUtils.load_image(SELECTED_IMAGE)
+    image = ImageUtils.load_image(SELECTED_FILE)
     image = ImageUtils.resize_with_aspect_ratio(image, width=1000)
     cars = CarDetector("MEDIUM").detect(image)
     cars = [car.get_center() for car in cars]
@@ -141,11 +144,11 @@ def main() -> int:
 
     count = ImageProcessor.count_cars_traffic_light_queue(image, cars, display_intermediate=DISPLAY_PARKING_SPACES_INTERMEDIATE)
     logger.info(f"Number of cars in the traffic light queue: {count}")
-    # parking_spaces = ImageProcessor.check_parking_spaces(SELECTED_IMAGE, cars, display_intermediate=DISPLAY_PARKING_SPACES_INTERMEDIATE)
+    # parking_spaces = ImageProcessor.check_parking_spaces(SELECTED_FILE, cars, display_intermediate=DISPLAY_PARKING_SPACES_INTERMEDIATE)
     # for i, space in enumerate(parking_spaces):
     #     logger.info(f"Parking space {i + 1}: {'Occupied' if space else 'Free'}")
 
-    # image = ImageUtils.load_image(SELECTED_IMAGE)
+    # image = ImageUtils.load_image(SELECTED_FILE)
     # image = ImageUtils.resize_with_aspect_ratio(image, width=1000)
     # ImageUtils.draw_quadrilateral_on_image(image, ImageProcessor.PARKING_BOX)
     # ImageUtils.display(image, title="Parking Spaces")
