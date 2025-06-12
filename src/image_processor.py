@@ -120,7 +120,10 @@ class ImageProcessor:
         cars_at_traffic_light = []
         for point in warped_car_points:
             last_car = cars_at_traffic_light[-1] if cars_at_traffic_light else Point(0, 0)
-            if point.y < 120 or (point.y - last_car.y) < 150:
+            if point.distance_to(last_car) < 20:
+               continue  # Skip if the car is too close to the last one, it may be the same car
+
+            if point.y < 200 or (point.y - last_car.y) < 150:
                 cars_at_traffic_light.append(point)
             else:
                 break

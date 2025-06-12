@@ -73,49 +73,19 @@ class Point:
     @staticmethod
     def from_tuple(t: tuple) -> 'Point':
         return Point(t[0], t[1]) if len(t) == 2 else Point(0, 0)
-
-class Quadrilateral:
-    """ ======= A class representing a quadrilateral defined by four points ======= """
-    def __init__(self, top_left: Point, bottom_right: Point, \
-        top_right: Point, bottom_left: Point):
-        self.top_left = top_left
-        self.bottom_right = bottom_right
-        self.top_right = top_right
-        self.bottom_left = bottom_left
-        
-        self.lines = [
-            Line(top_left, top_right),
-            Line(top_right, bottom_right),
-            Line(bottom_right, bottom_left),
-            Line(bottom_left, top_left)
-        ]
-        
-    def check_point_inside(self, point: Point) -> bool:
-        """
-        Check if a point is inside the quadrilateral.
-        This implementation uses the winding number algorithm (or ray casting).
-        It's robust for convex and concave polygons.
-        """
-        n = len(self.lines)
-        inside = False
-
-        p_x, p_y = point.x, point.y
-
-        for i in range(n):
-            current_line = self.lines[i]
-            next_line = self.lines[(i + 1) % n] # Get the next vertex (wraps around)
-
-            # Check if the point is on the horizontal line segment (edge parallel to x-axis)
-            if current_line.start.y == next_line.start.y == p_y and min(current_line.start.x, next_line.start.x) <= p_x <= max(current_line.start.x, next_line.start.x):
-                return True
-
-            # Ray casting algorithm
-            if ((current_line.start.y <= p_y < next_line.start.y) or (next_line.start.y <= p_y < current_line.start.y)) and \
-               (p_x < (next_line.start.x - current_line.start.x) * (p_y - current_line.start.y) / (next_line.start.y - current_line.start.y) + current_line.start.x):
-                inside = not inside
-
-        return inside
     
+    def __add__(self, other: 'Point') -> 'Point':
+        """ Add two points together. """
+        return Point(self.x + other.x, self.y + other.y)
+
+    def __sub__(self, other: 'Point') -> 'Point':
+        """ Subtract one point from another. """
+        return Point(self.x - other.x, self.y - other.y)
+    
+    def distance_to(self, other: 'Point') -> float:
+        """ Calculate the Euclidean distance to another point. """
+        return ((self.x - other.x) ** 2 + (self.y - other.y) ** 2) ** 0.5
+
 class Rectangle:
     """ ======= A class representing a rectangle defined by two points: top-left and bottom-right ======= """
     def __init__(self, top_left: Point, bottom_right: Point):
@@ -142,6 +112,56 @@ class Rectangle:
         else:
             print("Invalid tuple length for Rectangle, returning default Rectangle (0, 0) to (0, 0)")
             return Rectangle(Point(0, 0), Point(0, 0))
+
+class Quadrilateral:
+    """ ======= A class representing a quadrilateral defined by four points ======= """
+    def __init__(self, top_left: Point, bottom_right: Point, \
+        top_right: Point, bottom_left: Point):
+        self.top_left = top_left
+        self.bottom_right = bottom_right
+        self.top_right = top_right
+        self.bottom_left = bottom_left
+        
+        self.lines = [
+            Line(top_left, top_right),
+            Line(top_right, bottom_right),
+            Line(bottom_right, bottom_left),
+            Line(bottom_left, top_left)
+        ]
+        
+    def get_bounding_box(self) -> Rectangle:
+        """ Get the bounding rectangle of the quadrilateral. """
+        min_x = min(self.top_left.x, self.bottom_left.x, self.top_right.x, self.bottom_right.x)
+        max_x = max(self.top_left.x, self.bottom_left.x, self.top_right.x, self.bottom_right.x)
+        min_y = min(self.top_left.y, self.bottom_left.y, self.top_right.y, self.bottom_right.y)
+        max_y = max(self.top_left.y, self.bottom_left.y, self.top_right.y, self.bottom_right.y)
+        return Rectangle(Point(min_x, min_y), Point(max_x, max_y))
+        
+    def check_point_inside(self, point: Point) -> bool:
+        """
+        Check if a point is inside the quadrilateral.
+        This implementation uses the winding number algorithm (or ray casting).
+        It's robust for convex and concave polygons.
+        """
+        n = len(self.lines)
+        inside = False
+
+        p_x, p_y = point.x, point.y
+
+        for i in range(n):
+            current_line = self.lines[i]
+            next_line = self.lines[(i + 1) % n] # Get the next vertex (wraps around)
+
+            # Check if the point is on the horizontal line segment (edge parallel to x-axis)
+            if current_line.start.y == next_line.start.y == p_y and min(current_line.start.x, next_line.start.x) <= p_x <= max(current_line.start.x, next_line.start.x):
+                return True
+
+            # Ray casting algorithm
+            if ((current_line.start.y <= p_y < next_line.start.y) or (next_line.start.y <= p_y < current_line.start.y)) and \
+               (p_x < (next_line.start.x - current_line.start.x) * (p_y - current_line.start.y) / (next_line.start.y - current_line.start.y) + current_line.start.x):
+                inside = not inside
+
+        return inside
 
 class Line:
     """ ======= A class representing a line defined by two points: start and end ======= """
