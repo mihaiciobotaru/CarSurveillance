@@ -32,6 +32,22 @@ class ImageUtils:
         return rotated_image, rotation_matrix
     
     @staticmethod
+    def crop_image_to_quadrilateral(image: np.ndarray, quadrilateral: Quadrilateral) -> np.ndarray:
+        """Crop an image to a specified quadrilateral."""
+        bounding_box = quadrilateral.get_bounding_box()
+        min_x = bounding_box.top_left.x
+        max_x = bounding_box.bottom_right.x
+        min_y = bounding_box.top_left.y
+        max_y = bounding_box.bottom_right.y
+        if min_x < 0 or min_y < 0 or max_x > image.shape[1] or max_y > image.shape[0]:
+            raise ValueError("Quadrilateral points are out of image bounds.")
+
+        cropped_image = image[min_y:max_y, min_x:max_x]
+        if cropped_image.size == 0:
+            raise ValueError("Cropped image is empty. Check the quadrilateral points.")
+        return cropped_image
+    
+    @staticmethod
     def warp_perspective(image: np.ndarray, src_points: list[Point], dst_points: list[Point]=[]) -> np.ndarray:
         """Apply perspective transformation to an image."""
         if len(src_points) != 4:

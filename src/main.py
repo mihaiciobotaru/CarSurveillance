@@ -3,7 +3,7 @@ from detect_cars import CarDetector
 from image_processor import ImageProcessor
 from image_utils import ImageUtils
 from video_utils import VideoUtils
-from utils import get_logger
+from utils import get_logger, Point
 import numpy as np
 import os
 
@@ -40,13 +40,24 @@ def task4(video_path: str) -> None:
     last_frame = VideoUtils.get_last_frame(video_path)
     image = ImageUtils.load_image(last_frame)
     image = ImageUtils.resize_with_aspect_ratio(image, width=1000)
+    
+    # we use a cropped image for detecting cars in the traffic light queue
+    # This helps us to focus on the area where cars are waiting at the traffic light and get better results
+    cropped_image = ImageUtils.crop_image_to_quadrilateral(image, ImageProcessor.TRAFFIC_LIGHT_QUEUE)
+    if DISPLAY_PARKING_SPACES_INTERMEDIATE:
+        ImageUtils.display(cropped_image, title="Cropped Image", display=True, size=1000)
 
     detector = CarDetector("LARGE")
-    cars = detector.detect(image)
+    cars = detector.detect(cropped_image)
     car_centers = [car.get_center() for car in cars]
-    
+    traffic_queue_box = ImageProcessor.TRAFFIC_LIGHT_QUEUE.get_bounding_box()
+    min_x = traffic_queue_box.top_left.x
+    min_y = traffic_queue_box.top_left.y
+    car_centers = [Point(car.x + min_x, car.y + min_y) for car in car_centers]
+
     if not SAVE_TO_FOLDER_SWITCH:
         ImageUtils.draw_quadrilateral_on_image(image, ImageProcessor.TRAFFIC_LIGHT_QUEUE)
+        print(car_centers)
         for car in car_centers:
             ImageUtils.draw_point_on_image(image, car, text="Car")
         ImageUtils.display(image, title="Selected Image", display=True, size=1000)
@@ -132,12 +143,16 @@ def task_to_results(task_name: str, path_to_tasks: str, save_to_folder: str, rem
         files_dict[file_name][extension] = path_to_file
 
     # Go through each file and run the task
-    if RUN_SELECTED_IMAGE: # Run only on the selected file
+    if RUN_SELECTED_FILE: # Run only on the selected file
         files_dict = {k: v for k, v in files_dict.items() if k == SELECTED_FILE.split(".")[0]}
 
+    if not files_dict or len(files_dict) == 0:
+        logger.error(f"No files found in {path_to_task_folder}. Please check the path and file extensions.")
+        return
+    
     for file_name in files_dict:
-        print (f"Found file: {file_name}")
-        print (f"File: {files_dict[file_name]}")
+        logger.info(f"Found file: {file_name}")
+        logger.debug(f"File: {files_dict[file_name]}")
         mp4_file = files_dict[file_name].get("mp4")
         jpg_file = files_dict[file_name].get("jpg")
         txt_file = files_dict[file_name].get("txt")
